@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-white">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radar Laboral — Síntesis de Oportunidades</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            neutral: {
+              50: '#fafafa',
+              100: '#f5f5f5',
+              200: '#e5e5e5',
+              300: '#d4d4d4',
+              400: '#a3a3a3',
+              500: '#737373',
+              600: '#525252',
+              700: '#404040',
+              800: '#262626',
+              900: '#171717',
+              950: '#0a0a0a',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom clean scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #fafafa;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #d4d4d4;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a3a3a3;
+    }
+  </style>
+</head>
+<body class="h-full text-neutral-900 bg-white flex flex-col font-sans antialiased overflow-hidden select-none">
+
+  <!-- TOP HEADER / MINIMALIST APP BAR -->
+  <header class="h-14 border-b border-neutral-200 px-6 flex items-center justify-between bg-white shrink-0 z-20">
+    <div class="flex items-center space-x-6">
+      <!-- App Brand Logo (Semantic SVG) -->
+      <div class="flex items-center space-x-2.5">
+        <svg class="w-5 h-5 text-neutral-900 stroke-[2]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="m16 12-4-4-4 4"/>
+          <path d="M12 16V8"/>
+        </svg>
+        <span class="font-semibold text-sm tracking-tight text-neutral-900">RADAR LABORAL</span>
+      </div>
+
+      <!-- Active Profile Selector Strip -->
+      <div class="flex items-center space-x-2 pl-4 border-l border-neutral-200">
+        <label for="profileSelector" class="text-xs text-neutral-500 font-medium">Sección / Perfil:</label>
+        <select id="profileSelector" onchange="changeProfile(this.value)" class="text-xs font-semibold text-neutral-900 bg-neutral-100 hover:bg-neutral-200/80 px-2.5 py-1.5 rounded-md border border-neutral-200 focus:outline-none cursor-pointer transition-colors max-w-xs truncate">
+          <!-- Dynamically populated from profiles.json -->
+        </select>
+        <button onclick="openProfileModal()" title="Gestionar Perfiles" class="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Status & Refresh Button -->
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-1.5 text-xs text-neutral-500">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span class="hidden sm:inline">Motores Locales Activos (Pereira / Risaralda + Teletrabajo)</span>
+      </div>
+      <button onclick="loadJobs(true)" id="refreshBtn" title="Actualizar Oportunidades Reales" class="flex items-center space-x-1.5 text-xs font-medium px-3 py-1.5 rounded-md border border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 text-neutral-700 transition-colors shadow-sm">
+        <svg id="refreshIcon" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+        <span>Actualizar</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- SEARCH & DYNAMIC FILTER BAR -->
+  <section class="border-b border-neutral-200 px-6 py-3 bg-neutral-50/50 shrink-0 space-y-2.5">
+    <!-- Search Input Row -->
+    <div class="flex items-center space-x-3">
+      <div class="relative flex-1">
+        <svg class="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Filtrar por cargo, empresa, requisito o tarea particular..." class="w-full pl-9 pr-4 py-1.5 text-xs bg-white border border-neutral-200 rounded-md focus:outline-none focus:border-neutral-400 placeholder:text-neutral-400">
+      </div>
+
+      <!-- Sorting Selector -->
+      <div class="flex items-center border border-neutral-200 rounded-md bg-white p-0.5 text-xs shrink-0">
+        <span class="text-[11px] text-neutral-400 px-2 font-medium">Ordenar por:</span>
+        <select id="sortSelect" onchange="applyFilters()" class="text-xs bg-transparent text-neutral-800 font-semibold pr-2 py-1 focus:outline-none cursor-pointer">
+          <option value="competition">Menos Postulaciones (Primeros en Aplicar)</option>
+          <option value="viability" selected>Mayor Viabilidad (Fácil Ingreso)</option>
+          <option value="affinity">Mayor Afinidad con el Perfil</option>
+          <option value="salary">Mayor Salario</option>
+          <option value="recent">Más Recientes</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Filter Controls Strip -->
+    <div class="flex items-center space-x-2 flex-wrap gap-y-2">
+      <!-- Modality Filter (Presencial / Remoto / Híbrido) -->
+      <div class="flex items-center border border-neutral-200 rounded-md bg-white p-0.5 text-xs">
+        <button onclick="setFilter('modality', 'Todos')" class="filter-btn-modality px-2.5 py-1 rounded text-neutral-900 font-medium bg-neutral-100" data-val="Todos">Modalidad: Todas</button>
+        <button onclick="setFilter('modality', 'Remoto')" class="filter-btn-modality px-2.5 py-1 rounded text-neutral-500 hover:text-neutral-900" data-val="Remoto">100% Remoto</button>
+        <button onclick="setFilter('modality', 'Híbrido')" class="filter-btn-modality px-2.5 py-1 rounded text-neutral-500 hover:text-neutral-900" data-val="Híbrido">Híbrido</button>
+        <button onclick="setFilter('modality', 'Presencial')" class="filter-btn-modality px-2.5 py-1 rounded text-neutral-500 hover:text-neutral-900" data-val="Presencial">Presencial (Pereira)</button>
+      </div>
+
+      <!-- Nuevo Filtro: Nivel de Postulaciones / Competencia -->
+      <div class="flex items-center border border-neutral-200 rounded-md bg-white p-0.5 text-xs">
+        <span class="text-[11px] text-neutral-400 px-2 font-medium">Postulaciones:</span>
+        <select id="filterCompetitionSelect" onchange="setFilter('competition', this.value)" class="text-xs bg-transparent text-neutral-800 font-medium pr-2 py-1 focus:outline-none cursor-pointer">
+          <option value="Todos">Todas las Ofertas</option>
+          <option value="pocas">Pocas Postulaciones (Temprana &lt; 48h)</option>
+          <option value="urgente">Urgente / Múltiples Vacantes</option>
+        </select>
+      </div>
+
+      <!-- Tipo de Trabajo / Jornada -->
+      <div class="flex items-center border border-neutral-200 rounded-md bg-white p-0.5 text-xs">
+        <span class="text-[11px] text-neutral-400 px-2 font-medium">Tipo:</span>
+        <select id="filterJornadaSelect" onchange="setFilter('jornada', this.value)" class="text-xs bg-transparent text-neutral-800 font-medium pr-2 py-1 focus:outline-none cursor-pointer">
+          <option value="Todos">Todos los Tipos</option>
+          <option value="vacaciones">Temporal / Vacaciones</option>
+          <option value="freelance">Freelance / Por Tareas</option>
+          <option value="Medio Tiempo">Medio Tiempo</option>
+          <option value="Tiempo Completo">Tiempo Completo</option>
+          <option value="Pasantía">Pasantía / Prácticas</option>
+        </select>
+      </div>
+
+      <!-- Horario / Turno -->
+      <div class="flex items-center border border-neutral-200 rounded-md bg-white p-0.5 text-xs">
+        <span class="text-[11px] text-neutral-400 px-2 font-medium">Horario:</span>
+        <select id="filterTurnoSelect" onchange="setFilter('turno', this.value)" class="text-xs bg-transparent text-neutral-800 font-medium pr-2 py-1 focus:outline-none cursor-pointer">
+          <option value="Todos">Día / Noche (Todos)</option>
+          <option value="Diurno / Oficina">Solo Diurno / Oficina</option>
+          <option value="Horario Flexible">Horario Flexible</option>
+          <option value="Nocturno / Rotativo">Nocturno / Rotativo</option>
+        </select>
+      </div>
+
+      <!-- Separación por Precio / Rango Salarial -->
+      <div class="flex items-center border border-neutral-200 rounded-md bg-white p-0.5 text-xs">
+        <span class="text-[11px] text-neutral-400 px-2 font-medium">Salario:</span>
+        <select id="filterSalaryRangeSelect" onchange="setFilter('salaryRange', this.value)" class="text-xs bg-transparent text-neutral-800 font-medium pr-2 py-1 focus:outline-none cursor-pointer">
+          <option value="Todos">Cualquier Salario</option>
+          <option value="visible">Solo con Salario Visible</option>
+          <option value="lt2m">Hasta $2.000.000 COP</option>
+          <option value="2m-4m">$2.000.000 a $4.000.000 COP</option>
+          <option value="gt4m">Más de $4.000.000 COP</option>
+          <option value="usd">Compensación en USD (Remoto)</option>
+        </select>
+      </div>
+
+      <!-- Habilidad / Modalidad Específica -->
+      <div class="flex items-center border border-neutral-200 rounded-md bg-white p-0.5 text-xs">
+        <span class="text-[11px] text-neutral-400 px-2 font-medium">Requisito:</span>
+        <select id="filterSkillSelect" onchange="setFilter('skill', this.value)" class="text-xs bg-transparent text-neutral-800 font-medium pr-2 py-1 focus:outline-none cursor-pointer">
+          <option value="Todos">Cualquiera</option>
+          <option value="sin_experiencia">Sin experiencia previa</option>
+          <option value="asesor">Asesor / Asistente Virtual</option>
+          <option value="vacaciones">Vacaciones o Temporada</option>
+          <option value="redes">Manejo de Redes Sociales</option>
+          <option value="excel">Requiere Excel</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN WORKSPACE: SPLIT PANE -->
+  <main class="flex-1 flex overflow-hidden">
+    <!-- LEFT PANE: JOB LIST (58%) -->
+    <div class="w-full lg:w-7/12 border-r border-neutral-200 flex flex-col bg-white overflow-hidden">
+      <!-- List Stats Bar -->
+      <div class="px-6 py-2.5 border-b border-neutral-100 flex items-center justify-between text-xs text-neutral-500 bg-neutral-50/30 shrink-0">
+        <span id="resultsCount">Cargando oportunidades...</span>
+        <span id="activeSortLabel" class="text-[11px] text-neutral-400">Ordenado por Menos Postulaciones (Primeros en Aplicar)</span>
+      </div>
+
+      <!-- Scrollable List Container -->
+      <div id="jobListContainer" class="flex-1 overflow-y-auto divide-y divide-neutral-100">
+        <!-- Rendered items go here -->
+      </div>
+    </div>
+
+    <!-- RIGHT PANE: EXECUTIVE SYNTHESIS SHEET (42%) -->
+    <div id="inspectorPane" class="hidden lg:flex w-5/12 flex-col bg-neutral-50/30 overflow-y-auto p-6">
+      <!-- Placeholder when nothing selected -->
+      <div id="inspectorPlaceholder" class="h-full flex flex-col items-center justify-center text-center text-neutral-400">
+        <svg class="w-10 h-10 mb-2 text-neutral-300 stroke-[1.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+        <p class="text-xs">Selecciona una vacante de la lista para ver su síntesis ejecutiva sin leer párrafos innecesarios.</p>
+      </div>
+
+      <!-- Active Job Content -->
+      <div id="inspectorContent" class="hidden flex-col space-y-4">
+        <!-- Top Title & Company -->
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-1.5">
+            <span id="detailSite" class="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded bg-neutral-100 text-neutral-600 border border-neutral-200"></span>
+            <span id="detailDate" class="text-[11px] text-neutral-400"></span>
+          </div>
+          <h2 id="detailTitle" class="text-lg font-semibold text-neutral-900 leading-snug"></h2>
+          <p id="detailCompanyLocation" class="text-xs text-neutral-500 mt-1"></p>
+        </div>
+
+        <!-- Primary Direct Apply Button -->
+        <div>
+          <a id="detailApplyBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center space-x-2 w-full py-2.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-md text-xs font-medium transition-colors shadow-sm">
+            <span>Postularse en la Plataforma Oficial</span>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+
+        <!-- Competition & Applications Advantage Card -->
+        <div class="bg-white p-3.5 rounded-lg border border-neutral-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-semibold text-neutral-900">Densidad de Postulantes</span>
+              <span id="detailCompetitionBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded border"></span>
+            </div>
+            <span id="detailCompetitionScore" class="text-xs font-bold text-neutral-900"></span>
+          </div>
+          <div class="w-full bg-neutral-100 rounded-full h-1.5">
+            <div id="detailCompetitionBar" class="h-1.5 rounded-full" style="width: 0%"></div>
+          </div>
+          <p id="detailCompetitionReason" class="text-xs text-neutral-600 leading-relaxed font-medium"></p>
+        </div>
+
+        <!-- Viability & Hiring Opportunity Card -->
+        <div class="bg-white p-3.5 rounded-lg border border-neutral-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="text-xs font-semibold text-neutral-900">Viabilidad de Contratación</span>
+              <span id="detailViabilityBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded border"></span>
+            </div>
+            <span id="detailViabilityScore" class="text-xs font-bold text-neutral-900"></span>
+          </div>
+          <div class="w-full bg-neutral-100 rounded-full h-1.5">
+            <div id="detailViabilityBar" class="h-1.5 rounded-full" style="width: 0%"></div>
+          </div>
+          <p id="detailViabilitySummary" class="text-xs text-neutral-600 leading-relaxed font-medium"></p>
+          <ul id="detailViabilityReasonsList" class="space-y-1 text-[11px] text-neutral-500 pt-1 border-t border-neutral-100">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+
+        <!-- 4 Key Metric Tiles (Grid 2x2) -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- Compensación -->
+          <div class="bg-white p-3 rounded-lg border border-neutral-200 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <span class="text-[10px] font-medium uppercase tracking-wider text-neutral-400 block mb-1">Compensación</span>
+            <span id="detailSalary" class="text-xs font-semibold text-neutral-900 block truncate"></span>
+          </div>
+          <!-- Modalidad -->
+          <div class="bg-white p-3 rounded-lg border border-neutral-200 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <span class="text-[10px] font-medium uppercase tracking-wider text-neutral-400 block mb-1">Modalidad</span>
+            <span id="detailModality" class="text-xs font-semibold text-neutral-900 block"></span>
+          </div>
+          <!-- Jornada / Tipo -->
+          <div class="bg-white p-3 rounded-lg border border-neutral-200 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <span class="text-[10px] font-medium uppercase tracking-wider text-neutral-400 block mb-1">Tipo de Trabajo</span>
+            <span id="detailJornada" class="text-xs font-semibold text-neutral-900 block truncate"></span>
+          </div>
+          <!-- Horario / Turno -->
+          <div class="bg-white p-3 rounded-lg border border-neutral-200 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+            <span class="text-[10px] font-medium uppercase tracking-wider text-neutral-400 block mb-1">Horario</span>
+            <span id="detailTurno" class="text-xs font-semibold text-neutral-900 block truncate"></span>
+          </div>
+        </div>
+
+        <!-- Profile Technical Affinity Card -->
+        <div class="bg-white p-3.5 rounded-lg border border-neutral-200 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-neutral-900">Afinidad Técnica con Perfil</span>
+            <span id="detailMatchScore" class="text-xs font-bold text-neutral-900"></span>
+          </div>
+          <div class="w-full bg-neutral-100 rounded-full h-1.5">
+            <div id="detailProgressBar" class="bg-neutral-800 h-1.5 rounded-full" style="width: 0%"></div>
+          </div>
+          <p id="detailMatchReason" class="text-xs text-neutral-600 leading-relaxed"></p>
+        </div>
+
+        <!-- Requisitos Clave Resumidos (3-4 viñetas) -->
+        <div class="bg-white p-4 rounded-lg border border-neutral-200 space-y-2.5">
+          <h3 class="text-xs font-semibold text-neutral-900 uppercase tracking-wider">Requisitos Clave Detectados</h3>
+          <ul id="detailRequirementsList" class="space-y-2 text-xs text-neutral-700">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+
+        <!-- Colapsable: Ver Descripción Completa -->
+        <div class="bg-white rounded-lg border border-neutral-200 overflow-hidden">
+          <button onclick="toggleRawDescription()" class="w-full px-4 py-2.5 flex items-center justify-between text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 transition-colors">
+            <span>Ver Descripción Original Completa</span>
+            <svg id="chevronIcon" class="w-4 h-4 text-neutral-400 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div id="rawDescriptionContainer" class="hidden px-4 py-3 border-t border-neutral-100 text-xs text-neutral-600 font-mono leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap bg-neutral-50/50">
+            <!-- Populated -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: GESTIÓN DE PERFILES -->
+  <div id="profileModal" class="fixed inset-0 bg-neutral-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl border border-neutral-200 shadow-xl max-w-lg w-full p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-neutral-100 pb-3">
+        <h3 class="text-sm font-semibold text-neutral-900">Configuración de Perfiles</h3>
+        <button onclick="closeProfileModal()" class="text-neutral-400 hover:text-neutral-600 p-1">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-neutral-600 font-medium mb-1">Nombre del Perfil</label>
+          <input type="text" id="modalProfName" placeholder="Ej. Asesor Virtual / Freelance" class="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:border-neutral-400">
+        </div>
+        <div>
+          <label class="block text-neutral-600 font-medium mb-1">Términos de Búsqueda (separados por coma)</label>
+          <input type="text" id="modalProfQueries" placeholder="vacaciones pereira, asesor virtual, freelance" class="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:border-neutral-400">
+        </div>
+        <div>
+          <label class="block text-neutral-600 font-medium mb-1">Habilidades Positivas / Requisitos Deseados</label>
+          <input type="text" id="modalProfSkills" placeholder="vacaciones, temporada, freelance, asesor virtual" class="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:border-neutral-400">
+        </div>
+        <div>
+          <label class="block text-neutral-600 font-medium mb-1">Palabras Clave a Descartar (Filtro Negativo)</label>
+          <input type="text" id="modalProfNegatives" placeholder="gerente, director, 5 años" class="w-full px-3 py-2 border border-neutral-200 rounded-md focus:outline-none focus:border-neutral-400">
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-2 border-t border-neutral-100">
+        <button onclick="closeProfileModal()" class="px-3 py-1.5 text-xs text-neutral-600 hover:text-neutral-900 rounded border border-neutral-200">Cancelar</button>
+        <button onclick="saveNewProfile()" class="px-3 py-1.5 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded">Guardar Perfil</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    let allJobs = [];
+    let currentProfileId = "temporales_vacaciones_freelance";
+    let activeJobId = null;
+    let filterModality = "Todos";
+    let filterCompetition = "Todos";
+    let filterJornada = "Todos";
+    let filterTurno = "Todos";
+    let filterSalaryRange = "Todos";
+    let filterSkill = "Todos";
+
+    async function init() {
+      await loadProfiles();
+      await loadJobs();
+    }
+
+    async function loadProfiles() {
+      try {
+        const res = await fetch("/api/profiles");
+        const profiles = await res.json();
+        const selector = document.getElementById("profileSelector");
+        selector.innerHTML = "";
+        profiles.forEach(p => {
+          const opt = document.createElement("option");
+          opt.value = p.id;
+          opt.textContent = p.name;
+          selector.appendChild(opt);
+        });
+        if (profiles.length > 0) {
+          selector.value = currentProfileId;
+        }
+      } catch (err) {
+        console.error("Error al cargar perfiles:", err);
+      }
+    }
+
+    async function changeProfile(newId) {
+      currentProfileId = newId;
+      await loadJobs();
+    }
+
+    async function loadJobs(refresh = false) {
+      const container = document.getElementById("jobListContainer");
+      const refreshIcon = document.getElementById("refreshIcon");
+      if (refresh) refreshIcon.classList.add("animate-spin");
+
+      container.innerHTML = `
+        <div class="p-8 text-center text-xs text-neutral-400 space-y-2">
+          <div class="inline-block w-4 h-4 border-2 border-neutral-900 border-t-transparent rounded-full animate-spin"></div>
+          <p>Consultando portales oficiales para el perfil seleccionado...</p>
+        </div>
+      `;
+
+      try {
+        const url = `/api/jobs?profile_id=${encodeURIComponent(currentProfileId)}${refresh ? '&refresh=true' : ''}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        allJobs = data.jobs || [];
+        applyFilters();
+      } catch (err) {
+        container.innerHTML = `
+          <div class="p-8 text-center text-xs text-rose-600">
+            Error al conectar con el servidor local.
+          </div>
+        `;
+      } finally {
+        if (refresh) refreshIcon.classList.remove("animate-spin");
+      }
+    }
+
+    function applyFilters() {
+      const q = document.getElementById("searchInput").value.toLowerCase().trim();
+      const sortCriterion = document.getElementById("sortSelect").value;
+
+      let filtered = allJobs.filter(job => {
+        // Search text
+        if (q) {
+          const haystack = `${job.title} ${job.company} ${job.location} ${job.requirements.join(' ')} ${job.description_full}`.toLowerCase();
+          if (!haystack.includes(q)) return false;
+        }
+        // Modality
+        if (filterModality !== "Todos" && job.modality.toLowerCase() !== filterModality.toLowerCase()) {
+          return false;
+        }
+        // Competition / Applications
+        if (filterCompetition === "pocas" && (job.competition_score || 50) < 70) {
+          return false;
+        }
+        if (filterCompetition === "urgente") {
+          const combined = `${job.title} ${job.description_full}`.toLowerCase();
+          if (!(combined.includes("urgente") || combined.includes("inmediat") || combined.includes("vacantes") || (job.competition_score || 0) >= 85)) {
+            return false;
+          }
+        }
+        // Jornada / Tipo
+        if (filterJornada !== "Todos") {
+          const jLow = job.jornada.toLowerCase();
+          if (filterJornada === "vacaciones" && !(jLow.includes("vacaciones") || jLow.includes("temporad") || jLow.includes("temporal") || job.is_temporary)) return false;
+          if (filterJornada === "freelance" && !(jLow.includes("freelance") || jLow.includes("tareas") || jLow.includes("honorarios"))) return false;
+          if (filterJornada === "Medio Tiempo" && !jLow.includes("medio tiempo")) return false;
+          if (filterJornada === "Tiempo Completo" && !jLow.includes("tiempo completo")) return false;
+          if (filterJornada === "Pasantía" && !(jLow.includes("pasantía") || jLow.includes("prácticas") || jLow.includes("aprendiz"))) return false;
+        }
+        // Turno
+        if (filterTurno !== "Todos") {
+          if (filterTurno === "Diurno / Oficina" && !job.turno.toLowerCase().includes("diurno")) return false;
+          if (filterTurno === "Nocturno / Rotativo" && !job.turno.toLowerCase().includes("rotativo") && !job.turno.toLowerCase().includes("nocturno")) return false;
+          if (filterTurno === "Horario Flexible" && !job.turno.toLowerCase().includes("flexible")) return false;
+        }
+        // Salary Range
+        if (filterSalaryRange !== "Todos") {
+          if (filterSalaryRange === "visible" && !job.salary.has_salary) return false;
+          if (filterSalaryRange === "lt2m") {
+            if (!job.salary.has_salary || job.salary.currency !== "COP" || job.salary.max_val > 2000000) return false;
+          }
+          if (filterSalaryRange === "2m-4m") {
+            if (!job.salary.has_salary || job.salary.currency !== "COP" || (job.salary.max_val < 2000000 && job.salary.min_val < 2000000)) return false;
+          }
+          if (filterSalaryRange === "gt4m") {
+            if (!job.salary.has_salary || job.salary.currency !== "COP" || job.salary.max_val < 4000000) return false;
+          }
+          if (filterSalaryRange === "usd") {
+            if (!job.salary.has_salary || job.salary.currency !== "USD") return false;
+          }
+        }
+        // Skill / Requirement filter
+        if (filterSkill !== "Todos") {
+          const combined = `${job.title} ${job.requirements.join(' ')} ${job.description_full}`.toLowerCase();
+          if (filterSkill === "sin_experiencia" && !(combined.includes("sin experiencia") || combined.includes("no requiere experiencia") || combined.includes("primer empleo"))) return false;
+          if (filterSkill === "asesor" && !(combined.includes("asesor") || combined.includes("asistente") || combined.includes("servicio al cliente") || combined.includes("chat"))) return false;
+          if (filterSkill === "vacaciones" && !(combined.includes("vacaciones") || combined.includes("temporad") || combined.includes("temporal") || job.is_temporary)) return false;
+          if (filterSkill === "redes" && !(combined.includes("redes") || combined.includes("instagram") || combined.includes("community manager") || combined.includes("facebook"))) return false;
+          if (filterSkill === "excel" && !combined.includes("excel")) return false;
+        }
+        return true;
+      });
+
+      // Sorting
+      if (sortCriterion === "competition") {
+        filtered.sort((a, b) => ((b.competition_score || 50) - (a.competition_score || 50)) || ((b.viability_score || 50) - (a.viability_score || 50)));
+        document.getElementById("activeSortLabel").textContent = "Ordenado por Menos Postulaciones (Primeros en Aplicar)";
+      } else if (sortCriterion === "viability") {
+        filtered.sort((a, b) => ((b.viability_score || 50) - (a.viability_score || 50)) || (b.match_score - a.match_score));
+        document.getElementById("activeSortLabel").textContent = "Ordenado por Mayor Viabilidad de Contratación";
+      } else if (sortCriterion === "affinity") {
+        filtered.sort((a, b) => b.match_score - a.match_score);
+        document.getElementById("activeSortLabel").textContent = "Ordenado por Afinidad Técnica con el Perfil";
+      } else if (sortCriterion === "salary") {
+        filtered.sort((a, b) => (b.salary.max_val || 0) - (a.salary.max_val || 0));
+        document.getElementById("activeSortLabel").textContent = "Ordenado por Mayor Salario";
+      } else if (sortCriterion === "recent") {
+        document.getElementById("activeSortLabel").textContent = "Ordenado por Publicación Reciente";
+      }
+
+      renderJobList(filtered);
+    }
+
+    function renderJobList(jobs) {
+      const container = document.getElementById("jobListContainer");
+      const stats = document.getElementById("resultsCount");
+      stats.textContent = `Mostrando ${jobs.length} de ${allJobs.length} vacantes analizadas`;
+
+      if (jobs.length === 0) {
+        container.innerHTML = `
+          <div class="p-12 text-center text-xs text-neutral-400">
+            No se encontraron vacantes con los filtros seleccionados.
+          </div>
+        `;
+        selectJob(null);
+        return;
+      }
+
+      container.innerHTML = "";
+      jobs.forEach(job => {
+        const isSelected = job.id === activeJobId;
+        const row = document.createElement("div");
+        row.className = `p-4 hover:bg-neutral-50/80 cursor-pointer transition-colors border-b border-neutral-100 flex flex-col space-y-2 ${isSelected ? 'bg-neutral-50 border-l-2 border-l-neutral-900' : ''}`;
+        row.onclick = () => selectJob(job);
+
+        // Modality badge styling
+        let modalityBadge = 'bg-neutral-100 text-neutral-600 border-neutral-200';
+        if (job.modality === 'Remoto') modalityBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        else if (job.modality === 'Híbrido') modalityBadge = 'bg-blue-50 text-blue-700 border-blue-200';
+
+        // Competition badge styling
+        const compScore = job.competition_score || 50;
+        let compBadgeClass = 'bg-neutral-100 text-neutral-600 border-neutral-200';
+        let compText = 'Competencia Media';
+        if (compScore >= 75) {
+          compBadgeClass = 'bg-amber-50 text-amber-800 border-amber-200';
+          compText = 'Pocas Postulaciones';
+        } else if (compScore < 50) {
+          compBadgeClass = 'bg-neutral-100 text-neutral-500 border-neutral-200';
+          compText = 'Muchas Postulaciones';
+        }
+
+        // Temporary tag
+        const isTemp = job.is_temporary || job.jornada.toLowerCase().includes("vacaciones") || job.jornada.toLowerCase().includes("temporad");
+
+        row.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center space-x-2 flex-wrap gap-y-1">
+                <span class="text-xs font-semibold text-neutral-900">${escapeHtml(job.title)}</span>
+                <span class="px-1.5 py-0.5 text-[10px] font-medium rounded border ${modalityBadge}">${job.modality}</span>
+                <span class="px-1.5 py-0.5 text-[10px] font-medium rounded border ${compBadgeClass}">${compText}</span>
+                ${isTemp ? '<span class="px-1.5 py-0.5 text-[10px] font-medium rounded border bg-purple-50 text-purple-800 border-purple-200">Temporal / Vacaciones</span>' : ''}
+              </div>
+              <p class="text-xs text-neutral-500">${escapeHtml(job.company)} • ${escapeHtml(job.location)}</p>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="text-[11px] font-bold text-neutral-900">${compScore >= 75 ? 'Temprana (&lt; 48h)' : job.date_posted}</span>
+              <span class="block text-[10px] text-neutral-400 mt-0.5">${job.viability_score || 50}% Viabilidad</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] pt-1">
+            <div class="flex items-center space-x-2 text-neutral-600 truncate mr-2">
+              <span class="font-medium text-neutral-900">${job.salary.display}</span>
+              <span>•</span>
+              <span class="truncate">${job.jornada}</span>
+              <span>•</span>
+              <span class="text-neutral-500 truncate">${job.turno}</span>
+            </div>
+            <span class="text-[10px] uppercase font-semibold text-neutral-400 shrink-0">${job.site}</span>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+
+      // Auto-select first job if none selected
+      if (!activeJobId && jobs.length > 0) {
+        selectJob(jobs[0]);
+      } else if (activeJobId) {
+        const stillPresent = jobs.find(j => j.id === activeJobId);
+        if (stillPresent) selectJob(stillPresent);
+        else if (jobs.length > 0) selectJob(jobs[0]);
+      }
+    }
+
+    function selectJob(job) {
+      const placeholder = document.getElementById("inspectorPlaceholder");
+      const content = document.getElementById("inspectorContent");
+
+      if (!job) {
+        activeJobId = null;
+        placeholder.classList.remove("hidden");
+        content.classList.add("hidden");
+        return;
+      }
+
+      activeJobId = job.id;
+      placeholder.classList.add("hidden");
+      content.classList.remove("hidden");
+      content.classList.add("flex");
+
+      document.getElementById("detailSite").textContent = job.site;
+      document.getElementById("detailDate").textContent = job.date_posted;
+      document.getElementById("detailTitle").textContent = job.title;
+      document.getElementById("detailCompanyLocation").textContent = `${job.company} — ${job.location}`;
+      document.getElementById("detailApplyBtn").href = job.job_url;
+
+      // Competition & Applications section
+      const compScore = job.competition_score || 50;
+      document.getElementById("detailCompetitionScore").textContent = `${compScore}/100`;
+      const compBar = document.getElementById("detailCompetitionBar");
+      compBar.style.width = `${compScore}%`;
+
+      const compBadge = document.getElementById("detailCompetitionBadge");
+      if (compScore >= 75) {
+        compBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded border bg-amber-50 text-amber-800 border-amber-200";
+        compBadge.textContent = "Pocas Postulaciones (Fácil Ingreso)";
+        compBar.className = "h-1.5 rounded-full bg-amber-500";
+      } else if (compScore >= 50) {
+        compBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded border bg-blue-50 text-blue-800 border-blue-200";
+        compBadge.textContent = "Competencia Moderada";
+        compBar.className = "h-1.5 rounded-full bg-blue-500";
+      } else {
+        compBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded border bg-neutral-100 text-neutral-600 border-neutral-200";
+        compBadge.textContent = "Alta Concurrencia";
+        compBar.className = "h-1.5 rounded-full bg-neutral-400";
+      }
+      document.getElementById("detailCompetitionReason").textContent = job.competition_reason || "Convocatoria activa.";
+
+      // Viability section
+      const vScore = job.viability_score || 50;
+      document.getElementById("detailViabilityScore").textContent = `${vScore}%`;
+      const vBar = document.getElementById("detailViabilityBar");
+      vBar.style.width = `${vScore}%`;
+      
+      const vBadge = document.getElementById("detailViabilityBadge");
+      if (vScore >= 75) {
+        vBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded border bg-emerald-50 text-emerald-800 border-emerald-200";
+        vBadge.textContent = "Alta Viabilidad";
+        vBar.className = "h-1.5 rounded-full bg-emerald-600";
+      } else if (vScore >= 50) {
+        vBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded border bg-blue-50 text-blue-800 border-blue-200";
+        vBadge.textContent = "Viabilidad Media";
+        vBar.className = "h-1.5 rounded-full bg-blue-600";
+      } else {
+        vBadge.className = "text-[10px] font-semibold px-2 py-0.5 rounded border bg-neutral-100 text-neutral-600 border-neutral-200";
+        vBadge.textContent = "Alta Experiencia";
+        vBar.className = "h-1.5 rounded-full bg-neutral-400";
+      }
+
+      document.getElementById("detailViabilitySummary").textContent = job.viability_summary || "Oportunidad analizada para contratación.";
+
+      const vReasonsList = document.getElementById("detailViabilityReasonsList");
+      vReasonsList.innerHTML = "";
+      (job.viability_reasons || []).forEach(r => {
+        const li = document.createElement("li");
+        li.className = "flex items-center space-x-1.5";
+        li.innerHTML = `
+          <svg class="w-3 h-3 text-emerald-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>${escapeHtml(r)}</span>
+        `;
+        vReasonsList.appendChild(li);
+      });
+
+      // 4 Metric Tiles
+      document.getElementById("detailSalary").textContent = job.salary.display;
+      document.getElementById("detailModality").textContent = job.modality;
+      document.getElementById("detailJornada").textContent = job.jornada;
+      document.getElementById("detailTurno").textContent = job.turno;
+
+      // Match Score
+      document.getElementById("detailMatchScore").textContent = `${job.match_score}%`;
+      document.getElementById("detailProgressBar").style.width = `${job.match_score}%`;
+      document.getElementById("detailMatchReason").textContent = job.match_reason;
+
+      // Requirements
+      const reqList = document.getElementById("detailRequirementsList");
+      reqList.innerHTML = "";
+      job.requirements.forEach(req => {
+        const li = document.createElement("li");
+        li.className = "flex items-start space-x-2";
+        li.innerHTML = `
+          <svg class="w-3.5 h-3.5 text-neutral-900 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>${escapeHtml(req)}</span>
+        `;
+        reqList.appendChild(li);
+      });
+
+      document.getElementById("rawDescriptionContainer").textContent = job.description_full || "No disponible.";
+    }
+
+    function toggleRawDescription() {
+      const container = document.getElementById("rawDescriptionContainer");
+      const chevron = document.getElementById("chevronIcon");
+      if (container.classList.contains("hidden")) {
+        container.classList.remove("hidden");
+        chevron.style.transform = "rotate(180deg)";
+      } else {
+        container.classList.add("hidden");
+        chevron.style.transform = "rotate(0deg)";
+      }
+    }
+
+    function setFilter(type, val) {
+      if (type === 'modality') {
+        filterModality = val;
+        document.querySelectorAll('.filter-btn-modality').forEach(b => {
+          if (b.dataset.val === val) {
+            b.className = "filter-btn-modality px-2.5 py-1 rounded text-neutral-900 font-medium bg-neutral-100";
+          } else {
+            b.className = "filter-btn-modality px-2.5 py-1 rounded text-neutral-500 hover:text-neutral-900";
+          }
+        });
+      } else if (type === 'competition') {
+        filterCompetition = val;
+      } else if (type === 'jornada') {
+        filterJornada = val;
+      } else if (type === 'turno') {
+        filterTurno = val;
+      } else if (type === 'salaryRange') {
+        filterSalaryRange = val;
+      } else if (type === 'skill') {
+        filterSkill = val;
+      }
+      applyFilters();
+    }
+
+    function openProfileModal() {
+      document.getElementById("profileModal").classList.remove("hidden");
+    }
+
+    function closeProfileModal() {
+      document.getElementById("profileModal").classList.add("hidden");
+    }
+
+    async function saveNewProfile() {
+      const name = document.getElementById("modalProfName").value.trim();
+      const queries = document.getElementById("modalProfQueries").value.split(",").map(s => s.trim()).filter(Boolean);
+      const skills = document.getElementById("modalProfSkills").value.split(",").map(s => s.trim()).filter(Boolean);
+      const negatives = document.getElementById("modalProfNegatives").value.split(",").map(s => s.trim()).filter(Boolean);
+
+      if (!name) {
+        alert("Ingresa un nombre para el perfil.");
+        return;
+      }
+
+      const id = "prof_" + Date.now();
+      const newProf = {
+        id: id,
+        name: name,
+        description: "Perfil personalizado",
+        search_queries: queries.length ? queries : [name],
+        locations: ["Colombia", "Remote"],
+        positive_skills: skills,
+        negative_keywords: negatives
+      };
+
+      try {
+        await fetch("/api/profiles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newProf)
+        });
+        closeProfileModal();
+        currentProfileId = id;
+        await loadProfiles();
+        await loadJobs(true);
+      } catch (err) {
+        alert("Error guardando el perfil.");
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
+</body>
+</html>
