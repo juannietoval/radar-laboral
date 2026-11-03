@@ -34,9 +34,10 @@ El sistema incluye 4 perfiles técnicos y laborales optimizados en `profiles.jso
 ```text
 radar-laboral/
 ├── static/
-│   └── index.html               # Interfaz split-pane reactiva (HTML5, Tailwind CDN, JS Vanilla)
+│   └── index.html               # Interfaz split-pane reactiva con cajón de Agente CLI y visor de logs
 ├── cache/                       # Almacenamiento local temporal en JSON para respuesta instantánea
 ├── server.py                    # API REST local implementada en FastAPI y Uvicorn
+├── agent_service.py             # Servicio del Agente Antigravity CLI (subprocesos agy.exe, logs y temporizador)
 ├── scraper.py                   # Orquestador concurrente de búsquedas y gestión de caché
 ├── computrabajo_scraper.py      # Extractor multi-página con enriquecimiento en paralelo (JSON-LD + DOM)
 ├── parser.py                    # Motor de normalización salarial, turnos, viabilidad y competencia
@@ -71,6 +72,54 @@ El script detectará automáticamente si el entorno virtual `.venv` existe. De n
 chmod +x iniciar_radar.sh
 ./iniciar_radar.sh
 ```
+
+### Ejecución Manual desde la Terminal
+```bash
+# 1. Crear el entorno virtual
+python -m venv .venv
+
+# 2. Activar el entorno virtual
+# En Windows:
+.venv\Scripts\activate
+# En Linux/macOS:
+source .venv/bin/activate
+
+# 3. Instalar librerías requeridas
+pip install -r requirements.txt
+
+# 4. Iniciar el servidor
+python server.py
+```
+Acceder en el navegador a: [http://localhost:8080](http://localhost:8080)
+
+---
+
+## Capacidades del Algoritmo de Análisis
+
+### 1. Extracción y Normalización de Compensación
+Analiza etiquetas estructuradas `schema.org/JobPosting` y patrones regex en texto para extraer montos en COP, USD o SMLV, distinguiendo rangos salariales reales (por ejemplo, `$1.900.000 - $2.200.000 COP`) y catalogando aquellas ofertas donde la remuneración es a convenir.
+
+### 2. Detección de Turno y Jornada
+Clasifica de manera automática la modalidad de trabajo:
+- **Jornada:** Tiempo Completo, Medio Tiempo, Pasantía / Prácticas, Licencia / Temporal Vacaciones, Freelance / Por Tareas.
+- **Turno:** Diurno / Oficina (Lunes a Viernes), Turnos Rotativos (Diurno / Nocturno), Nocturno, Horario Flexible.
+
+### 3. Índice de Viabilidad de Contratación
+Puntaje de 0 a 100 que pondera la accesibilidad del cargo:
+- **Bonificadores:** Sin experiencia previa requerida (+28 pts), perfil para estudiantes o aprendices (+22 pts), puesto temporal/vacacional (+20 pts), capacitación paga e ingreso inmediato (+14 pts).
+- **Penalizadores:** Exigencia de cargos directivos o gerenciales (-35 pts), más de 3 a 5 años de experiencia (-18 a -30 pts), posgrados o especializaciones (-20 pts).
+
+### 4. Nivel de Postulaciones y Concurrencia
+Calcula una estimación de competencia para priorizar las postulaciones tempranas:
+- **Pocas Postulaciones (< 24h - 48h):** Ofertas recién publicadas donde el aspirante forma parte de los primeros evaluados.
+- **Múltiples Vacantes / Urgente:** Convocatorias masivas donde la tasa de selección por cupo es más favorable.
+
+### 5. Asistente y Analista con Antigravity CLI
+La aplicación integra un panel lateral interactivo impulsado por el motor local de **Antigravity CLI** (`agy.exe`) sin costos de API externa ni dependencias de nube:
+- **Lectura de Datos Reales:** El agente recibe el perfil activo, los requisitos declarados y el conjunto de vacantes recién indexadas.
+- **Evaluación de Compatibilidad:** Al pulsar "Consultar Agente con esta Vacante", analiza los requisitos detallados, turnos rotativos y salarios contrastándolos con la disponibilidad del usuario.
+- **Generación de Cartas de Postulación:** Redacta mensajes de presentación técnicos y profesionales listos para enviar a la empresa.
+- **Monitoreo en Tiempo Real:** Dispone de un cronómetro de ejecución activa en segundos, indicador de estado (`running`, `completed`, `failed`) y una consola expandible con el flujo de eventos de terminal en vivo.
 
 ---
 

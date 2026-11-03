@@ -6,13 +6,14 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from scraper import load_profiles, get_profile_by_id, fetch_jobs_for_profile
+from agent_service import start_agent_task, get_job_status
 
 app = FastAPI(title="Radar Laboral Minimalista", version="1.0.0")
 
@@ -35,6 +36,11 @@ class ProfileCreate(BaseModel):
     locations: List[str]
     positive_skills: List[str]
     negative_keywords: List[str]
+
+class AgentChatRequest(BaseModel):
+    message: str
+    profile_id: str = "temporales_vacaciones_freelance"
+    selected_job: Optional[Dict[str, Any]] = None
 
 @app.get("/api/profiles")
 def list_profiles():
@@ -76,7 +82,6 @@ def get_jobs(
         results_wanted=30,
         force_refresh=refresh
     )
-    print(f"DEBUG: fetch_jobs_for_profile returned {len(jobs)} items")
 
     filtered = []
     for j in jobs:
@@ -100,6 +105,26 @@ def get_jobs(
         "jobs": filtered
     }
 
+# Agent Antigravity CLI Endpoints
+@app.post("/api/agent/chat")
+def run_agent_chat(req: AgentChatRequest):
+    if not req.message.strip():
+        raise HTTPException(status_code=400, detail="El mensaje no puede estar vacío.")
+    job_id = start_agent_task(
+        user_message=req.message,
+        profile_id=req.profile_id,
+        selected_job_data=req.selected_job
+    )
+    return {"status": "ok", "job_id": job_id}
+
+@app.get("/api/agent/status")
+def agent_status(job_id: str):
+    status_data = get_job_status(job_id)
+    if not status_data:
+        raise HTTPException(status_code=404, detail="Tarea del agente no encontrada.")
+    return status_data
+
+# Mount static files at root
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 
 if __name__ == "__main__":
@@ -114,5 +139,5 @@ if __name__ == "__main__":
     except OSError:
         port = 8000
 
-    print(f"Servidor iniciado en http://localhost:{port}")
+    print(f"Servidor listo en http://localhost:{port}")
     uvicorn.run(app, host="127.0.0.1", port=port, reload=False)
