@@ -69,6 +69,7 @@ def fetch_jobs_for_profile(
     all_raw_jobs: List[Dict[str, Any]] = []
     seen_signatures = set()
 
+    # 1. Scrape Computrabajo Colombia (Deep local Pereira/Risaralda + Deep Teletrabajo Remoto)
     for q in queries_to_run[:7]:
         q_lower = q.lower()
         is_remote_query = any(w in q_lower for w in ["remoto", "virtual", "redes", "community", "digitador", "freelance", "asesor virtual"])
@@ -94,6 +95,7 @@ def fetch_jobs_for_profile(
         except Exception as e:
             print(f"Error fetching Computrabajo for {q}: {e}")
 
+    # 2. Scrape LinkedIn e Indeed con JobSpy
     primary_query = queries_to_run[0]
     secondary_query = queries_to_run[1] if len(queries_to_run) > 1 else primary_query
 
@@ -119,6 +121,7 @@ def fetch_jobs_for_profile(
         except Exception as e:
             print(f"Error scraping with JobSpy ({q_spy}): {e}")
 
+    # 3. Procesar y filtrar con parser
     processed_jobs: List[Dict[str, Any]] = []
     for raw in all_raw_jobs:
         try:
@@ -128,8 +131,10 @@ def fetch_jobs_for_profile(
         except Exception as ex:
             pass
 
+    # Sort primarily by Viability and Low Competition (highest hiring opportunity with fewer competitors first)
     processed_jobs.sort(key=lambda x: (x["viability_score"], x["competition_score"], x["match_score"]), reverse=True)
 
+    # Cache verified vacancies
     if processed_jobs:
         try:
             with open(cache_path, "w", encoding="utf-8") as f:

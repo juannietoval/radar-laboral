@@ -26,12 +26,14 @@ def enrich_offer_detail(job: Dict[str, Any]) -> Dict[str, Any]:
         if r.status_code != 200:
             return job
         
+        # Keep canonical URL if redirected
         if r.url and r.url.startswith('http') and not '#' in r.url:
             job['job_url'] = r.url
             job['job_url_direct'] = r.url
             
         tree = html.fromstring(r.text)
         
+        # 1. Parse JSON-LD structured schema
         job_ld = None
         for s in tree.xpath('//script[@type="application/ld+json"]/text()'):
             try:
@@ -48,6 +50,7 @@ def enrich_offer_detail(job: Dict[str, Any]) -> Dict[str, Any]:
                 pass
                 
         if job_ld:
+            # Extract structured salary
             base_sal = job_ld.get('baseSalary')
             if isinstance(base_sal, dict):
                 val_obj = base_sal.get('value', {})
@@ -60,6 +63,7 @@ def enrich_offer_detail(job: Dict[str, Any]) -> Dict[str, Any]:
                     job['max_amount'] = float(val_obj)
                     job['currency'] = base_sal.get('currency', 'COP')
             
+            # Extract full detailed description
             raw_desc = job_ld.get('description', '')
             if raw_desc:
                 desc_text = re.sub(r'<[^>]+>', ' ', raw_desc)
@@ -70,10 +74,12 @@ def enrich_offer_detail(job: Dict[str, Any]) -> Dict[str, Any]:
             if emp_type:
                 job['job_type'] = "Tiempo Completo" if "FULL_TIME" in str(emp_type) else str(emp_type)
         
+        # 2. Extract DOM badges (always inspect, helps when JSON-LD is missing or partial)
         badges = tree.xpath('//div[contains(@class, "fs16")]//span/text() | //span[contains(@class, "tag")]/text()')
         badge_texts = [b.strip() for b in badges if b.strip()]
         for b in badge_texts:
             if "$" in b and job.get('min_amount') is None:
+                # E.g. "$ 2.200.000,00 (Mensual)" or "$ 1.500.000"
                 clean_b = b.replace("$", "").strip().split()[0]
                 clean_b = clean_b.replace(".", "").replace(",", ".")
                 try:
@@ -87,18 +93,20 @@ def enrich_offer_detail(job: Dict[str, Any]) -> Dict[str, Any]:
             if any(w in b.lower() for w in ["completo", "medio tiempo", "obra o labor", "fijo", "indefinido", "aprendizaje", "prácticas"]):
                 job['job_type'] = b
                 
+        # 3. Extract description and requirements text from DOM
         body_nodes = tree.xpath('//p[contains(@class, "mbB")]//text() | //div[contains(@class, "box_detail")]//p//text()')
         if body_nodes:
             full_body = " ".join([b.strip() for b in body_nodes if b.strip() and not b.strip().startswith('Ocultaste')])
             if len(full_body) > len(job.get('description', '')):
                 job['description'] = full_body
 
+        # 4. Extract explicit requirement bullets (e.g., 'Educación mínima', '2 años de experiencia')
         req_bullets = tree.xpath('//div[contains(@class, "box_detail")]//ul[contains(@class, "disc")]//li/text()')
         cleaned_bullets = [rb.strip() for rb in req_bullets if rb.strip() and len(rb.strip()) > 3]
         if cleaned_bullets:
             job['raw_bullets'] = cleaned_bullets
 
-    except Exception:
+    except Exception as e:
         pass
 
     return job
@@ -109,10 +117,15 @@ def scrape_computrabajo(
     max_pages: int = 2,
     max_results: int = 30
 ) -> List[Dict[str, Any]]:
+    """
+    Real-time deep scraping of Computrabajo Colombia with multi-page crawling
+    and asynchronous detail enrichment.
+    """
     jobs = []
     slug_query = clean_url_term(query)
     seen_urls = set()
 
+    # Determine base URL structure
     loc_lower = location.lower()
     is_remote_search = "remoto" in loc_lower or "teletrabajo" in loc_lower or "virtual" in loc_lower or "remoto" in query.lower()
     is_risaralda = "risaralda" in loc_lower or "pereira" in loc_lower or "pereira" in query.lower() or "risaralda" in query.lower()
@@ -197,9 +210,10 @@ def scrape_computrabajo(
                     "job_type": "Tiempo Completo",
                     "description": f"{title}. {snippet}. Ubicación: {job_location}."
                 })
-        except Exception:
+        except Exception as e:
             break
 
+    # Enrich detail concurrently for the top offers
     if jobs:
         with ThreadPoolExecutor(max_workers=8) as executor:
             enriched_jobs = list(executor.map(enrich_offer_detail, jobs))

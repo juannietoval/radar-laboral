@@ -9,7 +9,7 @@ La aplicación elimina la necesidad de leer párrafos extensos e irrelevantes en
 ## Principios y Filosofía de Diseño
 
 1. **Cero Datos Simulados (*100% Real-World Data*):** No utiliza datos sintéticos ni enlaces genéricos a páginas de inicio. Cada vacante cuenta con un enlace canónico verificado que redirige directamente a la oferta de trabajo para aplicar de inmediato.
-2. **Costo de Operación $0.00 USD:** Funciona exclusivamente con infraestructura y extractores locales (`Computrabajo`, `JobSpy` sobre `Indeed` y `LinkedIn`), sin requerir suscripciones a proxies ni créditos de pago en la nube.
+2. **Costo de Operación \$0.00 USD:** Funciona exclusivamente con infraestructura y extractores locales (`Computrabajo`, `JobSpy` sobre `Indeed` y `LinkedIn`), sin requerir suscripciones a proxies ni créditos de pago en la nube.
 3. **Priorización por Viabilidad Real (*Opportunity First*):** En lugar de ordenar únicamente por coincidencia de palabras clave, evalúa la factibilidad de contratación para perfiles en formación, estudiantes y cargos de entrada, penalizando roles directivos o exigencias desmedidas de experiencia.
 4. **Detector de Baja Competencia / Ventana Temprana:** Identifica aquellas ofertas publicadas en las últimas 24 a 48 horas (*golden window*) o con convocatorias masivas urgentes, maximizando la probabilidad de que la hoja de vida sea revisada en la primera fase.
 5. **Estética Minimalista y Profesional:** Interfaz sobria, en tonos claros, construida con Tailwind CSS y tipografía moderna, utilizando elementos vectoriales SVG semánticos y sin elementos decorativos distractores.

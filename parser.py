@@ -18,6 +18,7 @@ def extract_salary_info(row: Dict[str, Any]) -> Dict[str, Any]:
     currency = clean_text(row.get("currency")) or "COP"
     interval = clean_text(row.get("interval")) or "monthly"
     
+    # 1. Check if structured salary exists
     if min_amt is not None and not (isinstance(min_amt, float) and math.isnan(min_amt)) and str(min_amt) != "nan":
         try:
             min_val = float(min_amt)
@@ -38,8 +39,10 @@ def extract_salary_info(row: Dict[str, Any]) -> Dict[str, Any]:
         except (ValueError, TypeError):
             pass
     
+    # 2. Heuristic extraction from description
     desc = clean_text(row.get("description"))
     
+    # Match COP formats: $1.500.000, 2'500.000, etc.
     cop_pattern = r'(\$?\s?([1-9]\d{0,2}(?:[\.,\']\d{3}){2})\b(?:\s*(?:a|-|hasta)\s*\$?\s?([1-9]\d{0,2}(?:[\.,\']\d{3}){2}))?)'
     match = re.search(cop_pattern, desc)
     if match:
@@ -61,6 +64,7 @@ def extract_salary_info(row: Dict[str, Any]) -> Dict[str, Any]:
         except ValueError:
             pass
 
+    # Match SMLV
     if re.search(r'\b(smlv|salario m[ií]nimo)\b', desc, re.IGNORECASE):
         return {
             "has_salary": True,
@@ -71,6 +75,7 @@ def extract_salary_info(row: Dict[str, Any]) -> Dict[str, Any]:
             "display": "Salario Mínimo Legal (SMLV)"
         }
 
+    # Match USD hourly or monthly for remote jobs
     usd_match = re.search(r'\$(\d{2,4})\s?(?:usd|d[oó]lares)?\s?(?:al mes|\/mes|\/month|monthly)', desc, re.IGNORECASE)
     if usd_match:
         val = float(usd_match.group(1))
@@ -105,6 +110,7 @@ def detect_modality(title: str, desc: str, location: str, is_remote: Any) -> str
 def detect_schedule(job_type: Optional[str], desc: str) -> Dict[str, str]:
     text = f"{job_type or ''} {desc}".lower()
     
+    # Jornada
     jornada = "Tiempo Completo"
     if "freelance" in text or "por tareas" in text or "honorarios" in text:
         jornada = "Freelance / Por Tareas"
@@ -121,6 +127,7 @@ def detect_schedule(job_type: Optional[str], desc: str) -> Dict[str, str]:
     elif "temporal" in text or "por proyecto" in text:
         jornada = "Temporal / Por Proyecto"
         
+    # Turno
     turno = "Diurno / Oficina (Lunes a Viernes)"
     if any(k in text for k in ["rotativo", "turnos rotativos", "diurnos y nocturnos", "domingo a domingo", "24/7"]):
         turno = "Turnos Rotativos (Diurno / Nocturno)"
@@ -135,12 +142,18 @@ def detect_schedule(job_type: Optional[str], desc: str) -> Dict[str, str]:
     }
 
 def estimate_competition(date_posted: str, desc: str, title: str) -> Dict[str, Any]:
+    """
+    Estimates competition and application density.
+    Identifies postings in early application windows (golden window < 48 hours),
+    multiple vacancies, and urgent hiring requests where applicant pressure is lowest.
+    """
     text = f"{title} {desc} {date_posted}".lower()
     date_lower = date_posted.lower()
 
     score = 50
     reasons = []
 
+    # 1. Freshness analysis (Fewer applicants applied so far)
     if any(w in date_lower for w in ["hora", "horas", "hoy"]):
         score = 90
         reasons.append("Publicación muy reciente (< 24h): sé de los primeros en postularte")
@@ -154,6 +167,7 @@ def estimate_competition(date_posted: str, desc: str, title: str) -> Dict[str, A
         score = 30
         reasons.append("Oferta con varios días activa (mayor acumulación de candidatos)")
 
+    # 2. Boost for multiple vacancies or mass hiring
     if any(k in text for k in ["múltiples vacantes", "vacantes", "convocatoria masiva", "temporada", "urgente"]):
         score = min(98, score + 12)
         if "urgente" in text or "inmediat" in text:
@@ -188,6 +202,7 @@ def extract_key_requirements(desc: str, raw_bullets: Optional[List[str]] = None)
             if any(term in b_clean.lower() for term in ["experiencia", "educación", "carrera", "técnico", "profesional"]):
                 reqs.append(b_clean)
 
+    # 1. Exact experience requirement
     exp_match = re.search(r'experiencia\s*(?:m[ií]nima)?\s*(?:de\s*)?(\d+)\s*(a[ñn]os?|meses?)', text_lower)
     if exp_match:
         qty = exp_match.group(1)
@@ -202,6 +217,7 @@ def extract_key_requirements(desc: str, raw_bullets: Optional[List[str]] = None)
     elif any(k in text_lower for k in ["sin experiencia", "no requiere experiencia", "primer empleo"]):
         reqs.append("No requiere experiencia previa (Perfil de entrada).")
 
+    # 2. Industry technical certifications & skills
     if "alturas" in text_lower and not any("alturas" in r.lower() for r in reqs):
         reqs.append("Certificación vigente de trabajo en alturas.")
     if ("conte" in text_lower or "tarjeta profesional" in text_lower) and not any("conte" in r.lower() for r in reqs):
@@ -244,6 +260,7 @@ def calculate_viability(title: str, desc: str, profile: Dict[str, Any]) -> Dict[
     viability = 50
     reasons = []
 
+    # 1. High viability boosters (Entry level / Student / Junior / Temporary)
     if any(k in text for k in ["sin experiencia", "no requiere experiencia", "primer empleo", "0 a 6 meses"]):
         viability += 28
         reasons.append("No exige experiencia previa (rápida contratación)")
@@ -268,6 +285,7 @@ def calculate_viability(title: str, desc: str, profile: Dict[str, Any]) -> Dict[
         viability += 10
         reasons.append("Horario flexible o vacacional compatible con estudio")
 
+    # Location boost for Pereira / Risaralda or Remote
     if any(city in text for city in ["pereira", "dosquebradas", "risaralda"]):
         viability += 8
         reasons.append("Ubicación local en Risaralda / Pereira")
@@ -275,6 +293,7 @@ def calculate_viability(title: str, desc: str, profile: Dict[str, Any]) -> Dict[
         viability += 8
         reasons.append("Modalidad 100% remota / desde casa")
 
+    # 2. Viability barriers (Downrank high-experience / leadership)
     if any(lead in title_lower for lead in ["gerente", "director", "jefe", "líder nacional", "coordinador general"]):
         viability -= 35
         reasons.append("Rol directivo/gerencial (baja viabilidad para perfil inicial)")
@@ -318,6 +337,7 @@ def score_job_match(title: str, desc: str, profile: Dict[str, Any]) -> Dict[str,
     text = f"{title} {desc}".lower()
     title_lower = title.lower()
     
+    # 1. Negative keywords filter
     for neg in profile.get("negative_keywords", []):
         if neg.lower() in title_lower:
             return {
@@ -326,6 +346,7 @@ def score_job_match(title: str, desc: str, profile: Dict[str, Any]) -> Dict[str,
                 "reason": f"Descartado por coincidencia con '{neg}'."
             }
 
+    # 2. Score positive skills
     score = 40
     matches = []
     for skill in profile.get("positive_skills", []):

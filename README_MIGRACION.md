@@ -51,3 +51,9 @@ En el nuevo computador, simplemente haz **doble clic en `iniciar_radar.bat`**:
 2. Ejecuta:
    - En Windows: doble clic en `iniciar_radar.bat`.
    - En Linux / macOS: `bash iniciar_radar.sh`.
+
+---
+
+## 4. Archivos Clave y Personalización
+- **`profiles.json`**: Aquí se guardan las búsquedas, habilidades deseadas y palabras a descartar. Puedes editarlo o agregar nuevos perfiles desde la interfaz web con el botón `+`.
+- **`cache/`**: Guarda los resultados de las búsquedas en archivos JSON locales para no sobrecargar los portales de empleo y permitir carga instantánea. Puedes borrar esta carpeta en cualquier momento y se volverá a generar fresca al presionar **Actualizar**.

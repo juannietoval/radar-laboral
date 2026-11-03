@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Radar Laboral — Síntesis de Oportunidades</title>
+  <title>Radar Laboral — Síntesis de Oportunidades & Agente Antigravity</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -77,12 +77,15 @@
       </div>
     </div>
 
-    <!-- Status & Refresh Button -->
+    <!-- Status & Action Buttons -->
     <div class="flex items-center space-x-3">
-      <div class="flex items-center space-x-1.5 text-xs text-neutral-500">
-        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-        <span class="hidden sm:inline">Motores Locales Activos (Pereira / Risaralda + Teletrabajo)</span>
-      </div>
+      <!-- Agente Antigravity CLI Trigger Button -->
+      <button onclick="toggleAgentDrawer()" id="agentHeaderBtn" class="flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shadow-sm">
+        <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        <span>Agente Antigravity CLI</span>
+        <span id="agentHeaderDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block ml-0.5"></span>
+      </button>
+
       <button onclick="loadJobs(true)" id="refreshBtn" title="Actualizar Oportunidades Reales" class="flex items-center space-x-1.5 text-xs font-medium px-3 py-1.5 rounded-md border border-neutral-200 hover:bg-neutral-50 active:bg-neutral-100 text-neutral-700 transition-colors shadow-sm">
         <svg id="refreshIcon" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
         <span>Actualizar</span>
@@ -122,7 +125,7 @@
         <button onclick="setFilter('modality', 'Presencial')" class="filter-btn-modality px-2.5 py-1 rounded text-neutral-500 hover:text-neutral-900" data-val="Presencial">Presencial (Pereira)</button>
       </div>
 
-      <!-- Nuevo Filtro: Nivel de Postulaciones / Competencia -->
+      <!-- Filtro: Nivel de Postulaciones / Competencia -->
       <div class="flex items-center border border-neutral-200 rounded-md bg-white p-0.5 text-xs">
         <span class="text-[11px] text-neutral-400 px-2 font-medium">Postulaciones:</span>
         <select id="filterCompetitionSelect" onchange="setFilter('competition', this.value)" class="text-xs bg-transparent text-neutral-800 font-medium pr-2 py-1 focus:outline-none cursor-pointer">
@@ -169,7 +172,7 @@
         </select>
       </div>
 
-      <!-- Habilidad / Modalidad Específica -->
+      <!-- Habilidad / Requisito -->
       <div class="flex items-center border border-neutral-200 rounded-md bg-white p-0.5 text-xs">
         <span class="text-[11px] text-neutral-400 px-2 font-medium">Requisito:</span>
         <select id="filterSkillSelect" onchange="setFilter('skill', this.value)" class="text-xs bg-transparent text-neutral-800 font-medium pr-2 py-1 focus:outline-none cursor-pointer">
@@ -185,7 +188,7 @@
   </section>
 
   <!-- MAIN WORKSPACE: SPLIT PANE -->
-  <main class="flex-1 flex overflow-hidden">
+  <main class="flex-1 flex overflow-hidden relative">
     <!-- LEFT PANE: JOB LIST (58%) -->
     <div class="w-full lg:w-7/12 border-r border-neutral-200 flex flex-col bg-white overflow-hidden">
       <!-- List Stats Bar -->
@@ -220,12 +223,16 @@
           <p id="detailCompanyLocation" class="text-xs text-neutral-500 mt-1"></p>
         </div>
 
-        <!-- Primary Direct Apply Button -->
-        <div>
-          <a id="detailApplyBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center space-x-2 w-full py-2.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-md text-xs font-medium transition-colors shadow-sm">
+        <!-- Primary Direct Apply & Ask Agent Buttons -->
+        <div class="flex items-center space-x-2">
+          <a id="detailApplyBtn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center space-x-2 flex-1 py-2.5 px-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-md text-xs font-medium transition-colors shadow-sm">
             <span>Postularse en la Plataforma Oficial</span>
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </a>
+          <button onclick="askAgentAboutCurrentJob()" title="Consultar con el Agente Antigravity sobre esta vacante" class="py-2.5 px-3 bg-white hover:bg-neutral-100 border border-neutral-300 rounded-md text-neutral-800 text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-sm">
+            <svg class="w-3.5 h-3.5 text-neutral-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            <span>Analizar con Agente</span>
+          </button>
         </div>
 
         <!-- Competition & Applications Advantage Card -->
@@ -317,6 +324,95 @@
         </div>
       </div>
     </div>
+
+    <!-- AGENTE ANTIGRAVITY CLI SLIDE-OUT DRAWER -->
+    <aside id="agentDrawer" class="hidden fixed inset-y-0 right-0 w-full sm:w-[500px] bg-white border-l border-neutral-200 shadow-2xl z-40 flex flex-col transition-all duration-300">
+      <!-- Drawer Top Bar -->
+      <div class="p-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-50 shrink-0">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-7 h-7 rounded bg-neutral-900 flex items-center justify-center text-white">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold text-neutral-900">Agente Antigravity CLI</h3>
+            <p class="text-[10px] text-neutral-500 font-mono">Motor local: agy.exe</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-1">
+          <button onclick="clearAgentChat()" title="Limpiar conversación" class="p-1.5 text-neutral-400 hover:text-neutral-600 rounded hover:bg-neutral-200/50">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+          <button onclick="toggleAgentDrawer()" title="Cerrar panel" class="p-1.5 text-neutral-400 hover:text-neutral-600 rounded hover:bg-neutral-200/50">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Real-Time Process Monitor Strip (Active when agent runs) -->
+      <div id="agentRunningBanner" class="hidden px-4 py-2.5 bg-neutral-900 text-white text-xs border-b border-neutral-800 flex flex-col space-y-1.5 shrink-0">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-medium">Antigravity CLI analizando datos...</span>
+          </div>
+          <span id="agentTimerDisplay" class="font-mono text-[11px] text-neutral-300">00:00s</span>
+        </div>
+        <div class="flex items-center justify-between text-[10px] text-neutral-400 pt-0.5">
+          <span id="agentStepStatus">Iniciando subproceso agy.exe en terminal</span>
+          <button onclick="toggleTerminalLogs()" class="text-neutral-300 underline hover:text-white cursor-pointer">Ver consola CLI</button>
+        </div>
+      </div>
+
+      <!-- Expandable Terminal Logs View -->
+      <div id="terminalLogContainer" class="hidden bg-neutral-950 text-neutral-200 font-mono text-[11px] p-3 max-h-36 overflow-y-auto border-b border-neutral-800 leading-tight">
+        <div id="terminalLogContent" class="space-y-1"></div>
+      </div>
+
+      <!-- Chat Messages Scroll Container -->
+      <div id="agentChatContainer" class="flex-1 overflow-y-auto p-4 space-y-3.5 bg-neutral-50/30">
+        <!-- Welcome Card -->
+        <div class="bg-white p-3.5 rounded-lg border border-neutral-200 text-xs text-neutral-700 space-y-2">
+          <p class="font-semibold text-neutral-900">Asesor de Carrera & Analista Antigravity</p>
+          <p class="text-neutral-600 leading-relaxed">
+            Leo directamente las vacantes reales indexadas en la app. Puedes pedirme que refine tu perfil, evalúe compatibilidad con tus horarios o redacte un mensaje de postulación oficial.
+          </p>
+          
+          <div class="pt-2 border-t border-neutral-100 space-y-1.5">
+            <span class="text-[10px] uppercase font-semibold text-neutral-400 block tracking-wider">Acciones Rápidas:</span>
+            <div class="flex flex-col space-y-1">
+              <button onclick="sendQuickPrompt('Analiza las 3 mejores ofertas de esta lista según viabilidad de contratación y salario real.')" class="text-left px-2.5 py-1.5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded text-[11px] text-neutral-800 transition-colors">
+                • Recomendar mejores 3 opciones de la lista
+              </button>
+              <button onclick="sendQuickPrompt('Soy estudiante y solo puedo trabajar tardes o fines de semana. ¿Cuáles vacantes se adaptan a mi horario sin barreras de experiencia?')" class="text-left px-2.5 py-1.5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded text-[11px] text-neutral-800 transition-colors">
+                • Filtrar por horarios para estudiantes / tardes
+              </button>
+              <button onclick="sendQuickPrompt('Busco trabajo 100% remoto, sin experiencia previa y con baja competencia de postulantes. ¿Cuál debo aplicar primero?')" class="text-left px-2.5 py-1.5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded text-[11px] text-neutral-800 transition-colors">
+                • Oportunidades remotas con pocos postulantes
+              </button>
+              <button onclick="askAgentAboutCurrentJob()" class="text-left px-2.5 py-1.5 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded text-[11px] text-neutral-800 transition-colors">
+                • Redactar mensaje de postulación para la vacante seleccionada
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Messages Appended Here -->
+      </div>
+
+      <!-- Drawer Input Bar -->
+      <div class="p-3 bg-white border-t border-neutral-200 shrink-0 space-y-1.5">
+        <form onsubmit="handleAgentSubmit(event)" class="flex items-center space-x-2">
+          <input type="text" id="agentInput" placeholder="Pregúntale a Antigravity sobre vacantes u horarios..." class="flex-1 px-3 py-2 text-xs border border-neutral-200 rounded-md focus:outline-none focus:border-neutral-400 bg-white placeholder:text-neutral-400">
+          <button type="submit" id="agentSendBtn" class="px-3.5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-semibold rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </form>
+        <div class="flex items-center justify-between text-[10px] text-neutral-400 px-1">
+          <span>Ejecutado con Antigravity CLI local</span>
+          <span id="agentSessionIndicator">Modo Agente Activo</span>
+        </div>
+      </div>
+    </aside>
   </main>
 
   <!-- MODAL: GESTIÓN DE PERFILES -->
@@ -360,12 +456,18 @@
     let allJobs = [];
     let currentProfileId = "temporales_vacaciones_freelance";
     let activeJobId = null;
+    let selectedJobObject = null;
     let filterModality = "Todos";
     let filterCompetition = "Todos";
     let filterJornada = "Todos";
     let filterTurno = "Todos";
     let filterSalaryRange = "Todos";
     let filterSkill = "Todos";
+
+    // Antigravity Agent State
+    let agentTaskId = null;
+    let agentTimerInterval = null;
+    let agentStartTime = null;
 
     async function init() {
       await loadProfiles();
@@ -552,7 +654,6 @@
           compText = 'Muchas Postulaciones';
         }
 
-        // Temporary tag
         const isTemp = job.is_temporary || job.jornada.toLowerCase().includes("vacaciones") || job.jornada.toLowerCase().includes("temporad");
 
         row.innerHTML = `
@@ -602,12 +703,14 @@
 
       if (!job) {
         activeJobId = null;
+        selectedJobObject = null;
         placeholder.classList.remove("hidden");
         content.classList.add("hidden");
         return;
       }
 
       activeJobId = job.id;
+      selectedJobObject = job;
       placeholder.classList.add("hidden");
       content.classList.remove("hidden");
       content.classList.add("flex");
@@ -781,6 +884,224 @@
       } catch (err) {
         alert("Error guardando el perfil.");
       }
+    }
+
+    /* ==============================================================
+       AGENTE ANTIGRAVITY CLI CHATBOT INTEGRATION
+       ============================================================== */
+
+    function toggleAgentDrawer() {
+      const drawer = document.getElementById("agentDrawer");
+      drawer.classList.toggle("hidden");
+      if (!drawer.classList.contains("hidden")) {
+        document.getElementById("agentInput").focus();
+      }
+    }
+
+    function clearAgentChat() {
+      const container = document.getElementById("agentChatContainer");
+      // Keep only initial welcome card
+      const welcome = container.firstElementChild;
+      container.innerHTML = "";
+      if (welcome) container.appendChild(welcome);
+    }
+
+    function toggleTerminalLogs() {
+      const logBox = document.getElementById("terminalLogContainer");
+      logBox.classList.toggle("hidden");
+    }
+
+    function sendQuickPrompt(promptText) {
+      document.getElementById("agentInput").value = promptText;
+      handleAgentSubmit(new Event("submit"));
+    }
+
+    function askAgentAboutCurrentJob() {
+      if (!selectedJobObject) {
+        alert("Por favor selecciona primero una vacante de la lista para analizar.");
+        return;
+      }
+      const drawer = document.getElementById("agentDrawer");
+      drawer.classList.remove("hidden");
+      const prompt = `Analiza la vacante seleccionada '${selectedJobObject.title}' de '${selectedJobObject.company}' (${selectedJobObject.salary.display}, ${selectedJobObject.modality}). Evalúa si realmente conviene para mi perfil y redacta una carta de presentación profesional para postularme.`;
+      document.getElementById("agentInput").value = prompt;
+      handleAgentSubmit(new Event("submit"));
+    }
+
+    async function handleAgentSubmit(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById("agentInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = "";
+      appendChatMessage("user", text);
+
+      // UI state: running
+      setAgentRunningState(true);
+
+      try {
+        const payload = {
+          message: text,
+          profile_id: currentProfileId,
+          selected_job: selectedJobObject
+        };
+
+        const res = await fetch("/api/agent/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          throw new Error("Fallo al iniciar el agente Antigravity");
+        }
+
+        const data = await res.json();
+        agentTaskId = data.job_id;
+
+        // Start polling for real-time status and logs
+        startPollingAgentStatus(agentTaskId);
+
+      } catch (err) {
+        setAgentRunningState(false);
+        appendChatMessage("agent", `Error al conectar con Antigravity CLI: ${err.message}`);
+      }
+    }
+
+    function setAgentRunningState(isRunning) {
+      const banner = document.getElementById("agentRunningBanner");
+      const sendBtn = document.getElementById("agentSendBtn");
+      const timerDisplay = document.getElementById("agentTimerDisplay");
+      const stepStatus = document.getElementById("agentStepStatus");
+      const dot = document.getElementById("agentHeaderDot");
+
+      if (isRunning) {
+        banner.classList.remove("hidden");
+        sendBtn.disabled = true;
+        dot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping inline-block ml-0.5";
+        agentStartTime = Date.now();
+        timerDisplay.textContent = "00:00s";
+        stepStatus.textContent = "Iniciando subproceso agy.exe en terminal...";
+
+        // Real-time timer ticker
+        if (agentTimerInterval) clearInterval(agentTimerInterval);
+        agentTimerInterval = setInterval(() => {
+          const elapsed = Math.floor((Date.now() - agentStartTime) / 1000);
+          const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+          const secs = String(elapsed % 60).padStart(2, '0');
+          timerDisplay.textContent = `${mins}:${secs}s`;
+        }, 1000);
+      } else {
+        banner.classList.add("hidden");
+        sendBtn.disabled = false;
+        dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block ml-0.5";
+        if (agentTimerInterval) {
+          clearInterval(agentTimerInterval);
+          agentTimerInterval = null;
+        }
+      }
+    }
+
+    function startPollingAgentStatus(jobId) {
+      const poll = async () => {
+        try {
+          const res = await fetch(`/api/agent/status?job_id=${encodeURIComponent(jobId)}`);
+          if (!res.ok) {
+            throw new Error("No se pudo obtener el estado del agente");
+          }
+          const job = await res.json();
+
+          // Update terminal log view
+          const logContent = document.getElementById("terminalLogContent");
+          logContent.innerHTML = "";
+          (job.logs || []).forEach(l => {
+            const row = document.createElement("div");
+            row.textContent = l;
+            logContent.appendChild(row);
+          });
+          logContent.scrollTop = logContent.scrollHeight;
+
+          if (job.status === "completed") {
+            setAgentRunningState(false);
+            appendChatMessage("agent", job.response);
+            return;
+          } else if (job.status === "failed") {
+            setAgentRunningState(false);
+            appendChatMessage("agent", `Error en Antigravity CLI: ${job.error || 'Fallo desconocido'}`);
+            return;
+          } else {
+            // Still running: update status text and poll again
+            document.getElementById("agentStepStatus").textContent = job.logs[job.logs.length - 1] || "Procesando en terminal CLI...";
+            setTimeout(poll, 800);
+          }
+        } catch (err) {
+          setAgentRunningState(false);
+          appendChatMessage("agent", `Fallo en el canal de comunicación: ${err.message}`);
+        }
+      };
+
+      setTimeout(poll, 800);
+    }
+
+    function appendChatMessage(role, content) {
+      const container = document.getElementById("agentChatContainer");
+      const msgDiv = document.createElement("div");
+
+      if (role === "user") {
+        msgDiv.className = "flex justify-end";
+        msgDiv.innerHTML = `
+          <div class="max-w-[85%] bg-neutral-900 text-white rounded-lg px-3.5 py-2.5 text-xs shadow-sm">
+            ${escapeHtml(content)}
+          </div>
+        `;
+      } else {
+        msgDiv.className = "flex justify-start space-x-2";
+        msgDiv.innerHTML = `
+          <div class="w-6 h-6 rounded bg-neutral-900 flex items-center justify-center text-white shrink-0 mt-0.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          </div>
+          <div class="max-w-[90%] bg-white border border-neutral-200 rounded-lg p-3 text-xs text-neutral-800 shadow-sm space-y-2 leading-relaxed">
+            <div class="markdown-body font-sans text-xs space-y-1.5">
+              ${formatMarkdown(content)}
+            </div>
+            <div class="text-[9px] text-neutral-400 font-mono text-right pt-1 border-t border-neutral-100">
+              Antigravity CLI • Verificado
+            </div>
+          </div>
+        `;
+      }
+
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function formatMarkdown(text) {
+      if (!text) return "";
+      
+      let html = escapeHtml(text);
+      
+      // Headers
+      html = html.replace(/^### (.*$)/gim, '<h4 class="font-bold text-neutral-900 text-xs mt-2 mb-1">$1</h4>');
+      html = html.replace(/^## (.*$)/gim, '<h3 class="font-bold text-neutral-900 text-xs mt-2 mb-1">$1</h3>');
+      html = html.replace(/^# (.*$)/gim, '<h2 class="font-bold text-neutral-900 text-sm mt-2 mb-1">$1</h2>');
+
+      // Bold & Italic
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-neutral-900">$1</strong>');
+      html = html.replace(/\*(.*?)\*/g, '<em class="text-neutral-700">$1</em>');
+
+      // URLs to interactive pills
+      html = html.replace(/\[(.*?)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2 py-0.5 my-0.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 rounded text-neutral-900 font-medium text-[11px] transition-colors"><span>$1</span><svg class="w-3 h-3 ml-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>');
+
+      // Unordered lists
+      html = html.replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc">$1</li>');
+      html = html.replace(/^- (.*$)/gim, '<li class="ml-4 list-disc">$1</li>');
+
+      // Newlines
+      html = html.replace(/\n\n/g, '<br><br>');
+      html = html.replace(/\n/g, '<br>');
+
+      return html;
     }
 
     function escapeHtml(str) {
