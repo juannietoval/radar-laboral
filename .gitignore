@@ -17,3 +17,7 @@ desktop.ini
 *.log
 scratch/
 test_*.py
+cache/
+*.json.bak
+push_*.json
+batch*.json
