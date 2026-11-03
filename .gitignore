@@ -1,0 +1,19 @@
+# Python environment & cache
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Operating System
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & temp
+*.log
+scratch/
+test_*.py
