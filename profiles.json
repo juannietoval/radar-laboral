@@ -1,0 +1,103 @@
+[
+  {
+    "id": "temporales_vacaciones_freelance",
+    "name": "Temporales, Vacaciones & Asesor Virtual / Freelance",
+    "description": "Sección especializada en vacantes inmediatas de temporada, licencias de vacaciones, asesoría virtual, tareas particulares freelance y soporte remoto con baja competencia y contratación rápida.",
+    "search_queries": [
+      "vacaciones pereira",
+      "temporada pereira",
+      "asesor virtual",
+      "asesor servicio al cliente remoto",
+      "freelance remoto",
+      "auxiliar temporal pereira",
+      "digitador desde casa",
+      "promotor temporada pereira",
+      "asistente temporal"
+    ],
+    "locations": ["Pereira, Risaralda, Colombia", "Risaralda, Colombia", "Colombia", "Remote"],
+    "positive_skills": [
+      "vacaciones", "temporada", "temporal", "freelance", "asesor virtual", "asesor",
+      "atención al cliente", "servicio al cliente", "chat", "digitador", "digitación",
+      "asistente", "pereira", "remoto", "teletrabajo", "sin experiencia", "inmediata", "urgente"
+    ],
+    "negative_keywords": [
+      "gerente", "director", "5 años de experiencia", "10 años", "posgrado"
+    ]
+  },
+  {
+    "id": "estudiante_electrica",
+    "name": "Estudiante Ing. Eléctrica (Junior / Prácticas / Pereira y Remoto)",
+    "description": "Oportunidades de alta viabilidad para estudiante que inicia en Ingeniería Eléctrica: auxiliares de mantenimiento, practicantes, pasantías, licencias de vacaciones, dibujante AutoCAD y soporte técnico en Risaralda o remoto.",
+    "search_queries": [
+      "auxiliar electrico pereira",
+      "tecnico electricista pereira",
+      "mantenimiento locativo pereira",
+      "practicante electrico",
+      "estudiante ingenieria electrica",
+      "dibujante autocad",
+      "asistente soporte tecnico remoto",
+      "digitador excel remoto"
+    ],
+    "locations": ["Pereira, Risaralda, Colombia", "Risaralda, Colombia", "Colombia", "Remote"],
+    "positive_skills": [
+      "eléctrica", "eléctrico", "electricidad", "circuitos", "autocad", "técnico", "soporte",
+      "asistente", "auxiliar", "digitador", "gestión documental", "documentos", "mantenimiento",
+      "excel", "medio tiempo", "pasantía", "practicante", "vacaciones", "remoto", "pereira", "risaralda",
+      "sin experiencia", "aprendiz"
+    ],
+    "negative_keywords": [
+      "gerente", "director general", "director de planta", "jefe de operaciones",
+      "5 años de experiencia", "10 años", "posgrado", "maestría"
+    ]
+  },
+  {
+    "id": "asistente_virtual_excel",
+    "name": "Asistente Virtual / Manejo de Redes / Secretaria y Digitación",
+    "description": "Vacantes remotas y presenciales de rápida inserción laboral: community manager junior, atención de redes sociales (Instagram, TikTok, WhatsApp), secretaria virtual, digitación en Excel, servicio al cliente y soporte administrativo.",
+    "search_queries": [
+      "asistente virtual",
+      "redes sociales",
+      "community manager",
+      "secretaria",
+      "digitador",
+      "atencion al cliente remoto",
+      "asistente administrativo pereira",
+      "recepcionista pereira",
+      "auxiliar de oficina pereira"
+    ],
+    "locations": ["Pereira, Risaralda, Colombia", "Colombia", "Remote"],
+    "positive_skills": [
+      "redes sociales", "community manager", "instagram", "facebook", "whatsapp", "tiktok",
+      "secretaria", "asistente virtual", "digitador", "digitación", "gestión documental", "archivos",
+      "excel", "servicio al cliente", "soporte chat", "redacción", "remoto", "teletrabajo", "pereira",
+      "sin experiencia", "atención al cliente"
+    ],
+    "negative_keywords": [
+      "gerente", "director", "abogado senior", "ingeniero civil", "coordinador nacional"
+    ]
+  },
+  {
+    "id": "ing_fisica",
+    "name": "Ingeniero Físico (Graduado / Bilingüe / Metrología / Analítica)",
+    "description": "Perfil técnico para graduado en Ingeniería Física o áreas afines: análisis de datos, instrumentación, calidad, metrología, óptica y desarrollo con Excel e inglés.",
+    "search_queries": [
+      "ingeniero fisico",
+      "metrologia pereira",
+      "control calidad pereira",
+      "analista datos pereira",
+      "analista datos junior remoto",
+      "data analyst bilingual remote",
+      "asistente bilingue excel"
+    ],
+    "locations": ["Risaralda, Colombia", "Pereira, Colombia", "Colombia", "Remote"],
+    "positive_skills": [
+      "física", "óptica", "instrumentación", "metrología", "sensores",
+      "excel", "macros", "tablas dinámicas", "análisis de datos", "python",
+      "modelado", "simulación", "matlab", "inglés", "calidad", "laboratorio"
+    ],
+    "negative_keywords": [
+      "educacion fisica", "educación física", "fisioterapia", "fisioterapeuta",
+      "gimnasio", "entrenador", "deportivo", "recreacion", "deportes"
+    ]
+  }
+]
